@@ -13,15 +13,15 @@ public class EventPostResponseDto {
 //    String breweryName;
     String eventName;
     LocalDate eventDate;
-    Time begins;
-    Time ends;
+    String begins;
+    String ends;
     String desc;
     boolean is21Up;
     List<Category> categories;
 
     public EventPostResponseDto() { }
 
-    public EventPostResponseDto(int id, String eventName, LocalDate eventDate, Time begins, Time ends, String desc, boolean is21Up, List<Category> categories) {
+    public EventPostResponseDto(int id, String eventName, LocalDate eventDate, String begins, String ends, String desc, boolean is21Up, List<Category> categories) {
         this.id = id;
         this.eventName = eventName;
         this.eventDate = eventDate;
@@ -56,19 +56,19 @@ public class EventPostResponseDto {
         this.eventDate = eventDate;
     }
 
-    public Time getBegins() {
+    public String getBegins() {
         return begins;
     }
 
-    public void setBegins(Time begins) {
+    public void setBegins(String begins) {
         this.begins = begins;
     }
 
-    public Time getEnds() {
+    public String getEnds() {
         return ends;
     }
 
-    public void setEnds(Time ends) {
+    public void setEnds(String ends) {
         this.ends = ends;
     }
 

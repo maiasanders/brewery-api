@@ -11,15 +11,15 @@ public class Event {
     int breweryId;
     String breweryName;
     LocalDate eventDate;
-    Time begins;
-    Time ends;
+    String begins;
+    String ends;
     String desc;
     boolean is21Up;
     List<Category> categories;
 
     public Event() {}
 
-    public Event(int id, String eventName, int breweryId, String breweryName, LocalDate eventDate, Time begins, Time ends, String desc, boolean is21Up, List<Category> categories) {
+    public Event(int id, String eventName, int breweryId, String breweryName, LocalDate eventDate, String begins, String ends, String desc, boolean is21Up, List<Category> categories) {
         this.id = id;
         this.eventName = eventName;
         this.breweryId = breweryId;
@@ -72,19 +72,19 @@ public class Event {
         this.eventDate = eventDate;
     }
 
-    public Time getBegins() {
+    public String getBegins() {
         return begins;
     }
 
-    public void setBegins(Time begins) {
+    public void setBegins(String begins) {
         this.begins = begins;
     }
 
-    public Time getEnds() {
+    public String getEnds() {
         return ends;
     }
 
-    public void setEnds(Time ends) {
+    public void setEnds(String ends) {
         this.ends = ends;
     }
 
