@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -27,7 +28,7 @@ public class JdbcEventDao implements EventDao{
             "JOIN event_category AS ec ON e.event_id = ec.event_id " +
             "JOIN category AS c ON ec.category_id = c.category_id ";
     private final String GROUP_BY = " GROUP BY e.event_id, b.brewery_id;";
-    private final String WHERE_WITH_QUERY = "WHERE e.event_id = ? AND (e.event_name ILIKE ? OR e.description ILIKE ? OR categories ILIKE ? ";
+    private final String WHERE_WITH_QUERY = "WHERE e.brewery_id = ? AND (e.event_name ILIKE ? OR e.description ILIKE ?) ";
 
     public JdbcEventDao(JdbcTemplate template) {
         this.template = template;
@@ -37,7 +38,6 @@ public class JdbcEventDao implements EventDao{
     public Event getEventById(int id) {
         try {
             Event event = template.queryForObject(SELECT_STATEMENT + "WHERE e.event_id = ?" + GROUP_BY, this::mapRowToEvent, id);
-//            event.setCategories(categoryDao.getCategoriesByEventId(id));
             return event;
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
@@ -88,7 +88,7 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryMinDate(int id, String minDate) {
+    public List<Event> getEventsByBreweryMinDate(int id, Date minDate) {
         try {
             return template.query(SELECT_STATEMENT +
                     "WHERE e.brewery_id = ? AND event_date >= ?" + GROUP_BY, this::mapRowToEvent, id, minDate);
@@ -98,7 +98,7 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryMaxDate(int id, String maxDate) {
+    public List<Event> getEventsByBreweryMaxDate(int id, Date maxDate) {
         try {
             return template.query(SELECT_STATEMENT +
                     "WHERE e.brewery_id = ? AND event_date <= ?" + GROUP_BY,
@@ -123,14 +123,14 @@ public class JdbcEventDao implements EventDao{
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT  + WHERE_WITH_QUERY + GROUP_BY,
-                    this::mapRowToEvent, id, query, query, query);
+                    this::mapRowToEvent, id, query, query);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryDateRange(int id, String minDate, String maxDate) {
+    public List<Event> getEventsByBreweryDateRange(int id, Date minDate, Date maxDate) {
         try {
             return template.query(SELECT_STATEMENT +
                     "WHERE e.brewery_id = ? AND event_date BETWEEN ? AND ?" + GROUP_BY, this::mapRowToEvent, id, minDate, maxDate);
@@ -140,7 +140,7 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryMinDateOver21(int id, String minDate, Boolean over21) {
+    public List<Event> getEventsByBreweryMinDateOver21(int id, Date minDate, Boolean over21) {
         try {
             return template.query(SELECT_STATEMENT +
                     "WHERE e.brewery_id = ? AND event_date >= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, minDate, over21);
@@ -150,19 +150,19 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryMinDateQuery(int id, String minDate, String query) {
+    public List<Event> getEventsByBreweryMinDateQuery(int id, Date minDate, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date >= ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, minDate);
+                    " AND event_date >= ?" + GROUP_BY, this::mapRowToEvent, id, query, query, minDate);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryMaxDateOver21(int id, String maxDate, Boolean over21) {
+    public List<Event> getEventsByBreweryMaxDateOver21(int id, Date maxDate, Boolean over21) {
         try {
             return template.query(SELECT_STATEMENT +
                     "WHERE e.brewery_id = ? AND event_date <= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, maxDate, over21);
@@ -172,12 +172,12 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryMaxDateQuery(int id, String maxDate, String query) {
+    public List<Event> getEventsByBreweryMaxDateQuery(int id, Date maxDate, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date <= ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, maxDate);
+                    " AND event_date <= ?" + GROUP_BY, this::mapRowToEvent, id, query, query, maxDate);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
@@ -189,14 +189,14 @@ public class JdbcEventDao implements EventDao{
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, over21);
+                    " AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, over21);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryDateRangeOver21(int id, String minDate, String maxDate, Boolean over21) {
+    public List<Event> getEventsByBreweryDateRangeOver21(int id, Date minDate, Date maxDate, Boolean over21) {
         try {
             return template.query(SELECT_STATEMENT +
                     " AND event_date BETWEEN ? AND ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, minDate, maxDate, over21);
@@ -206,48 +206,48 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public List<Event> getEventsByBreweryDatesQuery(int id, String minDate, String maxDate, String query) {
+    public List<Event> getEventsByBreweryDatesQuery(int id, Date minDate, Date maxDate, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date BETWEEN ? AND ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, minDate, maxDate);
+                    " AND event_date BETWEEN ? AND ?" + GROUP_BY, this::mapRowToEvent, id, query, query, minDate, maxDate);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryMinDateOver21Query(int id, String minDate, Boolean over21, String query) {
+    public List<Event> getEventsByBreweryMinDateOver21Query(int id, Date minDate, Boolean over21, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date >= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, minDate, over21);
+                    " AND event_date >= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, minDate, over21);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryMaxDateOver21Query(int id, String maxDate, Boolean over21, String query) {
+    public List<Event> getEventsByBreweryMaxDateOver21Query(int id, Date maxDate, Boolean over21, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date <= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, maxDate, over21);
+                    " AND event_date <= ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, maxDate, over21);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }
     }
 
     @Override
-    public List<Event> getEventsByBreweryDatesOver21Query(int id, String minDate, String maxDate, Boolean over21, String query) {
+    public List<Event> getEventsByBreweryDatesOver21Query(int id, Date minDate, Date maxDate, Boolean over21, String query) {
         try {
             query = makeWildCard(query);
             return template.query(SELECT_STATEMENT +
                     WHERE_WITH_QUERY +
-                    " AND event_date BETWEEN ? AND ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, query, minDate, maxDate, over21);
+                    " AND event_date BETWEEN ? AND ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, minDate, maxDate, over21);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
         }

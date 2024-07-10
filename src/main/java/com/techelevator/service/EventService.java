@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -42,7 +43,7 @@ public class EventService {
         throw new UnauthorizedUserException();
     }
 
-    public List<EventGetResponseDto> listEventsByBrewery(int id, String minDate, String maxDate, Boolean over21, String query) {
+    public List<EventGetResponseDto> listEventsByBrewery(int id, Date minDate, Date maxDate, Boolean over21, String query) {
         if (minDate == null && maxDate == null && over21 == null && query == null) {
             return convertListToDto(eventDao.getEventsByBreweryId(id));
         } else if (maxDate == null && over21 == null && query == null) {

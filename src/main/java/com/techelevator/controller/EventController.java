@@ -6,12 +6,14 @@ import com.techelevator.model.dto.EventPostRequestDto;
 import com.techelevator.model.dto.EventPostResponseDto;
 import com.techelevator.service.EventService;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -40,8 +42,8 @@ public class EventController {
 
     @GetMapping(path = "/breweries/{id}/events")
     public List<EventGetResponseDto> listByBrewery(@PathVariable int id,
-                                                   @RequestParam(required = false) String minDate,
-                                                   @RequestParam(required = false) String maxDate,
+                                                   @RequestParam(name = "from-date" ,required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date minDate,
+                                                   @RequestParam(name = "to-date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date maxDate,
                                                    @RequestParam(required = false) Boolean over21,
                                                    @RequestParam(required = false) String query) {
         return service.listEventsByBrewery(id, minDate, maxDate, over21, query);
