@@ -1,6 +1,7 @@
 package com.techelevator.dao;
 
 import com.techelevator.exception.DaoException;
+import com.techelevator.exception.NoRecordException;
 import com.techelevator.model.Category;
 import com.techelevator.model.Event;
 import com.techelevator.model.dto.EventGetResponseDto;
@@ -54,7 +55,7 @@ public class JdbcEventDao implements EventDao{
         try {
             int eventId = template.queryForObject(sql, Integer.class, event.getEventName(), event.getBreweryId(), event.getEventDate(), event.getBegins(), event.getEnds(), event.getDesc(), event.isIs21Up());
             for (Category category : event.getCategories()) {
-                addCategoryToEvent(event, category);
+                addCategoryToEvent(eventId, category);
             }
             return getEventById(eventId);
         } catch (CannotGetJdbcConnectionException e) {
@@ -65,11 +66,11 @@ public class JdbcEventDao implements EventDao{
     }
 
     @Override
-    public Category addCategoryToEvent(Event event, Category category) {
+    public Category addCategoryToEvent(int eventId, Category category) {
         String sql = "INSERT INTO event_category " +
                 "(event_id, category_id) VALUES (?, ?);";
         try {
-            template.update(sql, event.getId(), category.getId());
+            template.update(sql, eventId, category.getId());
             return category;
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG + ", failed to add category to event", e);
@@ -250,6 +251,41 @@ public class JdbcEventDao implements EventDao{
                     " AND event_date BETWEEN ? AND ? AND over_21 = ?" + GROUP_BY, this::mapRowToEvent, id, query, query, minDate, maxDate, over21);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException(CANNOT_CONNECT_MSG, e);
+        }
+    }
+
+    @Override
+    public Event updateEvent(Event event) {
+        String sql = "UPDATE event " +
+                "SET event_name = ?, brewery_id = ?, event_date = ?, begins = ?, ends = ?, description = ?, over_21 = ? " +
+                "WHERE event_id = ?;";
+        try {
+            int rows = template.update(sql, event.getEventName(), event.getBreweryId(), event.getEventDate(), event.getBegins(), event.getEnds(), event.getDesc(), event.isIs21Up(), event.getId());
+            if (rows > 0) {
+                return getEventById(event.getId());
+            } else {
+                throw new NoRecordException("Event with ID " + event.getId() + " does not exist");
+            }
+//            TODO add update for categories?
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException(CANNOT_CONNECT_MSG, e);
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Unable to update event id " + event.getId() + " due to data integrity violation", e);
+        }
+    }
+
+    @Override
+    public void deleteEvent(int id) {
+        String deleteCategories = "DELETE FROM event_category " +
+                "WHERE event_id = ?";
+        String deleteEvent = "DELETE FROM event WHERE event_id = ?";
+        try {
+            template.update(deleteCategories, id);
+            template.update(deleteEvent, id);
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException(CANNOT_CONNECT_MSG, e);
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Cannot delete event " + id + " due to data integrity violation");
         }
     }
 

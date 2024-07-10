@@ -1,5 +1,6 @@
 package com.techelevator.controller;
 
+import com.techelevator.exception.NoRecordException;
 import com.techelevator.exception.UnauthorizedUserException;
 import com.techelevator.model.dto.EventGetResponseDto;
 import com.techelevator.model.dto.EventPostRequestDto;
@@ -22,17 +23,18 @@ public class EventController {
     private EventService service;
 
     public EventController(EventService service) {
-        try {
-            this.service = service;
-        } catch (UnauthorizedUserException e){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
+        this.service = service;
     }
 
     @PostMapping(path = "/events")
+    @ResponseStatus(code = HttpStatus.CREATED)
     @PreAuthorize("hasRole('ROLE_BREWER')")
     public EventPostResponseDto add(@Valid @RequestBody EventPostRequestDto dto, Principal principal) {
-        return service.add(dto, principal.getName());
+        try {
+            return service.add(dto, principal.getName());
+        } catch (UnauthorizedUserException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
     };
 
     @GetMapping(path = "events/{id}")
@@ -47,5 +49,32 @@ public class EventController {
                                                    @RequestParam(required = false) Boolean over21,
                                                    @RequestParam(required = false) String query) {
         return service.listEventsByBrewery(id, minDate, maxDate, over21, query);
+    }
+
+    @PutMapping(path = "/events/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_BREWER', 'ROLE_ADMIN')")
+    public EventPostResponseDto update(
+            @PathVariable int id,
+            @RequestBody @Valid EventPostRequestDto body,
+            Principal principal
+    ) {
+        try {
+            return service.put(id, body, principal);
+        } catch (NoRecordException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (UnauthorizedUserException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @DeleteMapping(path = "/events/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_BREWER', 'ROLE_ADMIN')")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable int id, Principal principal) {
+        try {
+            service.delete(id, principal);
+        } catch (UnauthorizedUserException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
     }
 }

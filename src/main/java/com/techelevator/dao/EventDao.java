@@ -10,7 +10,7 @@ import java.util.List;
 public interface EventDao {
     Event getEventById(int id);
     Event createEvent(Event event);
-    Category addCategoryToEvent(Event event, Category category);
+    Category addCategoryToEvent(int eventId, Category category);
 
     List<Event> getEventsByBreweryId(int id);
 
@@ -43,4 +43,8 @@ public interface EventDao {
     List<Event> getEventsByBreweryMaxDateOver21Query(int id, Date maxDate, Boolean over21, String query);
 
     List<Event> getEventsByBreweryDatesOver21Query(int id, Date minDate, Date maxDate, Boolean over21, String query);
+
+    Event updateEvent(Event event);
+
+    void deleteEvent(int id);
 }

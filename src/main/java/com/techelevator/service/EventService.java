@@ -4,6 +4,7 @@ import com.techelevator.dao.BreweryDao;
 import com.techelevator.dao.CategoryDao;
 import com.techelevator.dao.EventDao;
 import com.techelevator.dao.UserDao;
+import com.techelevator.exception.NoRecordException;
 import com.techelevator.exception.UnauthorizedUserException;
 import com.techelevator.model.Brewery;
 import com.techelevator.model.Event;
@@ -12,7 +13,9 @@ import com.techelevator.model.dto.EventGetResponseDto;
 import com.techelevator.model.dto.EventPostRequestDto;
 import com.techelevator.model.dto.EventPostResponseDto;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,6 +36,7 @@ public class EventService {
         this.categoryDao = categoryDao;
     }
 
+    @Transactional
     public EventPostResponseDto add(EventPostRequestDto dto, String name) {
         User user = userDao.getUserByUsername(name);
         Brewery brewery = breweryDao.getBreweryByBrewerId(user.getId());
@@ -97,6 +101,8 @@ public class EventService {
     }
     private Event dtoToEvent(EventPostRequestDto dto) {
         Event event = new Event();
+        event.setEventName(dto.getEventName());
+        event.setBreweryId(dto.getBreweryId());
         event.setEventDate(LocalDate.parse(dto.getEventDate()));
         event.setBegins(dto.getBegins());
         event.setEnds(dto.getEnds());
@@ -131,5 +137,26 @@ public class EventService {
 
     public EventGetResponseDto getEvent(int id) {
         return eventToGetDto(eventDao.getEventById(id));
+    }
+
+    public EventPostResponseDto put(int id, EventPostRequestDto body, Principal principal) {
+        isAdminOrAuthBrewer(body.getBreweryId(), principal);
+        return convertEventToPostResponseDto(eventDao.updateEvent(dtoToEvent(body)));
+
+    }
+
+    private void isAdminOrAuthBrewer(int breweryId, Principal principal) {
+        User user = userDao.getUserByUsername(principal.getName());
+        Brewery brewery = breweryDao.getBreweryByBrewerId(breweryId);
+        if (!user.getAuthoritiesString().contains("ADMIN") && !isAuthBrewer(user, brewery)) {
+            throw new UnauthorizedUserException();
+        }
+    }
+
+
+    public void delete(int id, Principal principal) {
+        int breweryID = eventDao.getEventById(id).getBreweryId();
+        isAdminOrAuthBrewer(breweryID, principal);
+        eventDao.deleteEvent(id);
     }
 }

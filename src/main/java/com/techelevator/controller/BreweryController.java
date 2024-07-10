@@ -67,6 +67,7 @@ public class BreweryController {
 
     @DeleteMapping(path = "{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void delete(@PathVariable int id) {
         dao.deleteBreweryById(id);
     }

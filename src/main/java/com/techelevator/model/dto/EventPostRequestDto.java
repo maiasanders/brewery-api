@@ -2,6 +2,7 @@ package com.techelevator.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.techelevator.model.Category;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,9 +12,13 @@ import java.util.Date;
 import java.util.List;
 
 public class EventPostRequestDto {
-    @JsonProperty("brewery_name")
-    @NotBlank(message = "field brewery_name can not be blank")
-    String breweryName;
+    @JsonProperty("event-name")
+    @NotBlank(message = "field event-name can not be blank")
+    String eventName;
+
+    @JsonProperty("brewery_id")
+    @Min(value = 0, message = "field brewery_id can not be blank")
+    int breweryId;
     @JsonProperty("event_date")
     @NotBlank(message = "field event_date can not be blank")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -32,8 +37,9 @@ public class EventPostRequestDto {
 
     public EventPostRequestDto() { }
 
-    public EventPostRequestDto(String breweryName, String eventDate, String begins, String ends, String desc, boolean is21Up, String[] categories) {
-        this.breweryName = breweryName;
+    public EventPostRequestDto(String eventName, int breweryId, String eventDate, String begins, String ends, String desc, boolean is21Up, String[] categories) {
+        this.eventName = eventName;
+        this.breweryId = breweryId;
         this.eventDate = eventDate;
         this.begins = begins;
         this.ends = ends;
@@ -42,12 +48,21 @@ public class EventPostRequestDto {
         this.categories = categories;
     }
 
-    public String getBreweryName() {
-        return breweryName;
+
+    public String getEventName() {
+        return eventName;
     }
 
-    public void setBreweryName(String breweryName) {
-        this.breweryName = breweryName;
+    public int getBreweryId() {
+        return breweryId;
+    }
+
+    public void setBreweryId(int breweryId) {
+        this.breweryId = breweryId;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
     }
 
     public String getEventDate() {
